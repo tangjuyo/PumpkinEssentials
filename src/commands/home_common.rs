@@ -10,4 +10,4 @@ lazy_static::lazy_static! {
         Arc::new(Mutex::new(HashMap::new()));
 }
 
-pub const ARG_HOME_NAME: &str = "name"; 
+pub const ARG_HOME_NAME: &str = "name";

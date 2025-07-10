@@ -1,16 +1,13 @@
 use async_trait::async_trait;
+use pumpkin::command::CommandSender::Player;
 use pumpkin::{
     command::{
-        args::ConsumedArgs,
-        dispatcher::CommandError,
-        dispatcher::CommandError::InvalidRequirement,
-        tree::CommandTree,
-        tree::builder::require,
-        CommandExecutor, CommandSender,
+        args::ConsumedArgs, dispatcher::CommandError, dispatcher::CommandError::InvalidRequirement,
+        tree::builder::require, tree::CommandTree, CommandExecutor, CommandSender,
     },
     server::Server,
 };
-use pumpkin::command::CommandSender::Player;
+use pumpkin_util::text::TextComponent;
 
 const NAMES: [&str; 1] = ["tpall"];
 const DESCRIPTION: &str = "Teleport all players to you.";
@@ -57,7 +54,6 @@ impl CommandExecutor for TpallExecutor {
 
 #[allow(clippy::redundant_closure_for_method_calls)]
 pub fn init_command_tree() -> CommandTree {
-    CommandTree::new(NAMES, DESCRIPTION).then(
-        require(|sender| sender.is_player()).execute(TpallExecutor)
-    )
-} use pumpkin_util::text::TextComponent;
+    CommandTree::new(NAMES, DESCRIPTION)
+        .then(require(|sender| sender.is_player()).execute(TpallExecutor))
+}

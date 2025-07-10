@@ -1,19 +1,19 @@
 use async_trait::async_trait;
+use pumpkin::command::CommandSender::Player;
 use pumpkin::{
     command::{
-        args::{Arg, ConsumedArgs, simple::SimpleArgConsumer},
+        args::{simple::SimpleArgConsumer, Arg, ConsumedArgs},
         dispatcher::CommandError,
         dispatcher::CommandError::InvalidRequirement,
-        tree::CommandTree,
         tree::builder::{argument, require},
+        tree::CommandTree,
         CommandExecutor, CommandSender,
     },
     server::Server,
 };
-use pumpkin::command::CommandSender::Player;
 use pumpkin_util::text::TextComponent;
 
-use super::home_common::{PLAYER_HOMES, ARG_HOME_NAME};
+use super::home_common::{ARG_HOME_NAME, PLAYER_HOMES};
 
 const NAMES: [&str; 1] = ["home"];
 const DESCRIPTION: &str = "Teleport to your home.";
@@ -39,17 +39,23 @@ impl CommandExecutor for HomeExecutor {
             // Check teleport cooldown
             if !crate::can_teleport(target.gameprofile.id).await {
                 target
-                    .send_system_message(&TextComponent::text("Please wait before teleporting again"))
+                    .send_system_message(&TextComponent::text(
+                        "Please wait before teleporting again",
+                    ))
                     .await;
                 return Ok(());
             }
-            
+
             let homes = PLAYER_HOMES.lock().await;
             if let Some(player_homes) = homes.get(&target.gameprofile.id) {
                 if let Some((position, yaw, pitch)) = player_homes.get(&home_name) {
                     // Validate position before teleporting
-                    if position.x.is_finite() && position.y.is_finite() && position.z.is_finite() 
-                        && yaw.is_finite() && pitch.is_finite() {
+                    if position.x.is_finite()
+                        && position.y.is_finite()
+                        && position.z.is_finite()
+                        && yaw.is_finite()
+                        && pitch.is_finite()
+                    {
                         // Utiliser teleport comme la commande native Pumpkin
                         target.teleport(*position, *yaw, *pitch).await;
 
@@ -93,6 +99,6 @@ pub fn init_command_tree() -> CommandTree {
     CommandTree::new(NAMES, DESCRIPTION).then(
         require(|sender| sender.is_player())
             .execute(HomeExecutor)
-            .then(argument(ARG_HOME_NAME, SimpleArgConsumer).execute(HomeExecutor))
+            .then(argument(ARG_HOME_NAME, SimpleArgConsumer).execute(HomeExecutor)),
     )
 }

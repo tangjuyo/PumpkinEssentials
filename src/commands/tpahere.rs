@@ -1,16 +1,16 @@
 use async_trait::async_trait;
+use pumpkin::command::CommandSender::Player;
 use pumpkin::{
     command::{
-        args::{Arg, ConsumedArgs, players::PlayersArgumentConsumer},
+        args::{players::PlayersArgumentConsumer, Arg, ConsumedArgs},
         dispatcher::CommandError,
         dispatcher::CommandError::{InvalidConsumption, InvalidRequirement},
-        tree::CommandTree,
         tree::builder::{argument, require},
+        tree::CommandTree,
         CommandExecutor, CommandSender,
     },
     server::Server,
 };
-use pumpkin::command::CommandSender::Player;
 use pumpkin_util::text::TextComponent;
 
 use super::tpa::TELEPORT_REQUESTS;
@@ -26,7 +26,7 @@ impl CommandExecutor for TpahereExecutor {
     async fn execute<'a>(
         &self,
         sender: &mut CommandSender,
-        server: &Server,
+        _server: &Server,
         args: &ConsumedArgs<'a>,
     ) -> Result<(), CommandError> {
         if let Player(target) = sender {
@@ -34,21 +34,28 @@ impl CommandExecutor for TpahereExecutor {
                 if players.len() == 1 {
                     players[0].clone()
                 } else {
-                    return Err(InvalidConsumption(Some("Expected exactly one player".to_string())));
+                    return Err(InvalidConsumption(Some(
+                        "Expected exactly one player".to_string(),
+                    )));
                 }
             } else {
-                return Err(InvalidConsumption(Some("Player argument is required".to_string())));
+                return Err(InvalidConsumption(Some(
+                    "Player argument is required".to_string(),
+                )));
             };
 
             if target.gameprofile.id == target_player.gameprofile.id {
                 target
-                    .send_system_message(&TextComponent::text("You cannot teleport to yourself"))
+                    .send_system_message(&TextComponent::text("You cannot teleport to yourself."))
                     .await;
                 return Ok(());
             }
 
             let mut requests = TELEPORT_REQUESTS.lock().await;
-            requests.insert(target_player.gameprofile.id, (target.gameprofile.id, "tpahere".to_string()));
+            requests.insert(
+                target_player.gameprofile.id,
+                (target.gameprofile.id, "tpahere".to_string()),
+            );
 
             target
                 .send_system_message(&TextComponent::text(format!(
@@ -75,6 +82,6 @@ impl CommandExecutor for TpahereExecutor {
 pub fn init_command_tree() -> CommandTree {
     CommandTree::new(NAMES, DESCRIPTION).then(
         require(|sender| sender.is_player())
-            .then(argument(ARG_TARGET, PlayersArgumentConsumer).execute(TpahereExecutor))
+            .then(argument(ARG_TARGET, PlayersArgumentConsumer).execute(TpahereExecutor)),
     )
 }

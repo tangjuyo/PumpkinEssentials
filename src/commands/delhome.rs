@@ -1,18 +1,18 @@
 use async_trait::async_trait;
+use pumpkin::command::CommandSender::Player;
 use pumpkin::{
     command::{
-        args::{Arg, ConsumedArgs, simple::SimpleArgConsumer},
+        args::{simple::SimpleArgConsumer, Arg, ConsumedArgs},
         dispatcher::CommandError,
         dispatcher::CommandError::InvalidRequirement,
-        tree::CommandTree,
         tree::builder::{argument, require},
+        tree::CommandTree,
         CommandExecutor, CommandSender,
     },
     server::Server,
 };
-use pumpkin::command::CommandSender::Player;
 
-use super::home_common::{PLAYER_HOMES, ARG_HOME_NAME};
+use super::home_common::{ARG_HOME_NAME, PLAYER_HOMES};
 
 const NAMES: [&str; 1] = ["delhome"];
 const DESCRIPTION: &str = "Delete one of your homes.";
@@ -36,7 +36,7 @@ impl CommandExecutor for DelhomeExecutor {
             };
 
             let mut homes = PLAYER_HOMES.lock().await;
-            
+
             if let Some(player_homes) = homes.get_mut(&target.gameprofile.id) {
                 if player_homes.remove(&home_name).is_some() {
                     target
@@ -70,6 +70,7 @@ impl CommandExecutor for DelhomeExecutor {
 pub fn init_command_tree() -> CommandTree {
     CommandTree::new(NAMES, DESCRIPTION).then(
         require(|sender| sender.is_player())
-            .then(argument(ARG_HOME_NAME, SimpleArgConsumer).execute(DelhomeExecutor))
+            .then(argument(ARG_HOME_NAME, SimpleArgConsumer).execute(DelhomeExecutor)),
     )
-} use pumpkin_util::text::TextComponent;
+}
+use pumpkin_util::text::TextComponent;
