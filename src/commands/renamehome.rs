@@ -3,10 +3,10 @@ use pumpkin::command::args::simple::SimpleArgConsumer;
 use pumpkin::command::args::{Arg, ConsumedArgs};
 use pumpkin::command::dispatcher::CommandError;
 use pumpkin::command::dispatcher::CommandError::{InvalidConsumption, InvalidRequirement};
-use pumpkin::command::tree::CommandTree;
 use pumpkin::command::tree::builder::{argument, require};
-use pumpkin::command::{CommandExecutor, CommandSender};
+use pumpkin::command::tree::CommandTree;
 use pumpkin::command::CommandSender::Player;
+use pumpkin::command::{CommandExecutor, CommandSender};
 use pumpkin::server::Server;
 use pumpkin_util::text::TextComponent;
 
@@ -42,7 +42,9 @@ impl CommandExecutor for RenameHomeExecutor {
 
             if old_name == new_name {
                 target
-                    .send_system_message(&TextComponent::text("Old and new home names cannot be the same"))
+                    .send_system_message(&TextComponent::text(
+                        "Old and new home names cannot be the same",
+                    ))
                     .await;
                 return Ok(());
             }
@@ -95,8 +97,9 @@ impl CommandExecutor for RenameHomeExecutor {
 #[allow(clippy::redundant_closure_for_method_calls)]
 pub fn init_command_tree() -> CommandTree {
     CommandTree::new(NAMES, DESCRIPTION).then(
-        require(|sender| sender.is_player())
-            .then(argument(ARG_OLD_NAME, SimpleArgConsumer)
-                .then(argument(ARG_NEW_NAME, SimpleArgConsumer).execute(RenameHomeExecutor)))
+        require(|sender| sender.is_player()).then(
+            argument(ARG_OLD_NAME, SimpleArgConsumer)
+                .then(argument(ARG_NEW_NAME, SimpleArgConsumer).execute(RenameHomeExecutor)),
+        ),
     )
-} 
+}

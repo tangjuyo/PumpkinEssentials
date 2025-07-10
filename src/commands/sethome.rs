@@ -1,18 +1,18 @@
 use async_trait::async_trait;
+use pumpkin::command::CommandSender::Player;
 use pumpkin::{
     command::{
-        args::{Arg, ConsumedArgs, simple::SimpleArgConsumer},
+        args::{simple::SimpleArgConsumer, Arg, ConsumedArgs},
         dispatcher::CommandError,
         dispatcher::CommandError::InvalidRequirement,
-        tree::CommandTree,
         tree::builder::{argument, require},
+        tree::CommandTree,
         CommandExecutor, CommandSender,
     },
     server::Server,
 };
-use pumpkin::command::CommandSender::Player;
 
-use super::home_common::{PLAYER_HOMES, ARG_HOME_NAME};
+use super::home_common::{ARG_HOME_NAME, PLAYER_HOMES};
 
 const NAMES: [&str; 1] = ["sethome"];
 const DESCRIPTION: &str = "Set your home at your current location.";
@@ -36,7 +36,7 @@ impl CommandExecutor for SethomeExecutor {
             };
 
             let mut homes = PLAYER_HOMES.lock().await;
-            
+
             // Get current position
             let position = target.living_entity.entity.pos.load();
             let yaw = target.living_entity.entity.yaw.load();
@@ -67,6 +67,7 @@ pub fn init_command_tree() -> CommandTree {
     CommandTree::new(NAMES, DESCRIPTION).then(
         require(|sender| sender.is_player())
             .execute(SethomeExecutor)
-            .then(argument(ARG_HOME_NAME, SimpleArgConsumer).execute(SethomeExecutor))
+            .then(argument(ARG_HOME_NAME, SimpleArgConsumer).execute(SethomeExecutor)),
     )
-} use pumpkin_util::text::TextComponent;
+}
+use pumpkin_util::text::TextComponent;

@@ -1,18 +1,18 @@
 use async_trait::async_trait;
+use pumpkin::command::CommandSender::Player;
 use pumpkin::{
     command::{
-        args::{Arg, ConsumedArgs, players::PlayersArgumentConsumer},
+        args::{players::PlayersArgumentConsumer, Arg, ConsumedArgs},
         dispatcher::CommandError,
         dispatcher::CommandError::{InvalidConsumption, InvalidRequirement},
-        tree::CommandTree,
         tree::builder::{argument, require},
+        tree::CommandTree,
         CommandExecutor, CommandSender,
     },
     server::Server,
 };
-use pumpkin::command::CommandSender::Player;
-use pumpkin_util::GameMode;
 use pumpkin_util::text::TextComponent;
+use pumpkin_util::GameMode;
 
 const NAMES: [&str; 1] = ["gma"];
 const DESCRIPTION: &str = "Change your gamemode to adventure.";
@@ -33,7 +33,9 @@ impl CommandExecutor for GMAExecutor {
                 if players.len() == 1 {
                     players[0].clone()
                 } else {
-                    return Err(InvalidConsumption(Some("Expected exactly one player".to_string())));
+                    return Err(InvalidConsumption(Some(
+                        "Expected exactly one player".to_string(),
+                    )));
                 }
             } else {
                 target.clone()
@@ -42,7 +44,7 @@ impl CommandExecutor for GMAExecutor {
             target_player.set_gamemode(GameMode::Adventure).await;
 
             let player_name = &target_player.gameprofile.name;
-            
+
             if std::ptr::eq(target, &target_player) {
                 target
                     .send_system_message(&TextComponent::text(format!(
@@ -72,6 +74,6 @@ pub fn init_command_tree() -> CommandTree {
     CommandTree::new(NAMES, DESCRIPTION).then(
         require(|sender| sender.is_player())
             .execute(GMAExecutor)
-            .then(argument(ARG_TARGET, PlayersArgumentConsumer).execute(GMAExecutor))
+            .then(argument(ARG_TARGET, PlayersArgumentConsumer).execute(GMAExecutor)),
     )
 }
