@@ -6,9 +6,9 @@ A comprehensive collection of essential commands for Pumpkin Minecraft servers.
 
 ### Information
 
-⚠️ = command coded or partially coded but isn't working yet
-✅ = command available and working 
-❌ = command not done yet
+- ⚠️ = command coded or partially coded but isn't working yet
+- ✅ = command available and working 
+- ❌ = command not done yet
 
 ### Home System
 
