@@ -52,6 +52,7 @@ A comprehensive collection of essential commands for Pumpkin Minecraft servers.
 
 ## Next focus
 
+- Some commentary are still in french ( due to my first language being french ). I will take the time to convert them all to english.
 - finding and solving the teleportation issue to make every command that need teleporting available
 - starting a real yml files structure to make persistant data & configuration 
 - whenever the yml structure is done ==> starting on ignore command & on chat control with configuration for banning word
