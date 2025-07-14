@@ -39,6 +39,26 @@ impl CommandExecutor for GMSExecutor {
                 target.clone()
             };
 
+            // Vérifier si le joueur est déjà en Survival
+            if target_player.gamemode.load() == GameMode::Survival {
+                let player_name = &target_player.gameprofile.name;
+                if std::ptr::eq(target, &target_player) {
+                    target
+                        .send_system_message(&TextComponent::text(
+                            "You are already in Survival mode."
+                        ))
+                        .await;
+                } else {
+                    target
+                        .send_system_message(&TextComponent::text(format!(
+                            "{} is already in Survival mode.",
+                            player_name
+                        )))
+                        .await;
+                }
+                return Ok(());
+            }
+
             target_player.set_gamemode(GameMode::Survival).await;
 
             let player_name = &target_player.gameprofile.name;

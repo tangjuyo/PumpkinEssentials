@@ -39,6 +39,26 @@ impl CommandExecutor for GMSPExecutor {
                 target.clone()
             };
 
+            // Vérifier si le joueur est déjà en Spectator
+            if target_player.gamemode.load() == GameMode::Spectator {
+                let player_name = &target_player.gameprofile.name;
+                if std::ptr::eq(target, &target_player) {
+                    target
+                        .send_system_message(&TextComponent::text(
+                            "You are already in Spectator mode."
+                        ))
+                        .await;
+                } else {
+                    target
+                        .send_system_message(&TextComponent::text(format!(
+                            "{} is already in Spectator mode.",
+                            player_name
+                        )))
+                        .await;
+                }
+                return Ok(());
+            }
+
             target_player.set_gamemode(GameMode::Spectator).await;
 
             let player_name = &target_player.gameprofile.name;

@@ -11,17 +11,16 @@ use pumpkin::{
     server::Server,
 };
 use pumpkin::command::CommandSender::Player;
-use pumpkin_util::GameMode;
 use pumpkin_util::text::TextComponent;
 
-const NAMES: [&str; 1] = ["gmc"];
-const DESCRIPTION: &str = "Change your gamemode to creative.";
+const NAMES: [&str; 1] = ["feed"];
+const DESCRIPTION: &str = "Feed yourself or another player.";
 const ARG_TARGET: &str = "target";
 
-struct GMCExecutor;
+struct FeedExecutor;
 
 #[async_trait]
-impl CommandExecutor for GMCExecutor {
+impl CommandExecutor for FeedExecutor {
     async fn execute<'a>(
         &self,
         sender: &mut CommandSender,
@@ -39,44 +38,27 @@ impl CommandExecutor for GMCExecutor {
                 target.clone()
             };
 
-            // Vérifier si le joueur est déjà en Creative
-            if target_player.gamemode.load() == GameMode::Creative {
-                let player_name = &target_player.gameprofile.name;
-                if std::ptr::eq(target, &target_player) {
-                    target
-                        .send_system_message(&TextComponent::text(
-                            "You are already in Creative mode."
-                        ))
-                        .await;
-                } else {
-                    target
-                        .send_system_message(&TextComponent::text(format!(
-                            "{} is already in Creative mode.",
-                            player_name
-                        )))
-                        .await;
-                }
-                return Ok(());
-            }
-
-            target_player.set_gamemode(GameMode::Creative).await;
+            // Set player's food level to maximum (20) and saturation to 5.0
+            target_player.hunger_manager.level.store(20);
+            target_player.hunger_manager.saturation.store(5.0);
+            target_player.send_health().await;
 
             let player_name = &target_player.gameprofile.name;
             
             if std::ptr::eq(target, &target_player) {
                 target
-                    .send_system_message(&TextComponent::text(format!(
-                        "Set own gamemode to {:?}",
-                        GameMode::Creative
-                    )))
+                    .send_system_message(&TextComponent::text("You have been fed!"))
                     .await;
             } else {
                 target
                     .send_system_message(&TextComponent::text(format!(
-                        "Set {}'s gamemode to {:?}",
-                        player_name,
-                        GameMode::Creative
+                        "Fed {}",
+                        player_name
                     )))
+                    .await;
+                    
+                target_player
+                    .send_system_message(&TextComponent::text("You have been fed!"))
                     .await;
             }
 
@@ -91,7 +73,7 @@ impl CommandExecutor for GMCExecutor {
 pub fn init_command_tree() -> CommandTree {
     CommandTree::new(NAMES, DESCRIPTION).then(
         require(|sender| sender.is_player())
-            .execute(GMCExecutor)
-            .then(argument(ARG_TARGET, PlayersArgumentConsumer).execute(GMCExecutor))
+            .execute(FeedExecutor)
+            .then(argument(ARG_TARGET, PlayersArgumentConsumer).execute(FeedExecutor))
     )
 }

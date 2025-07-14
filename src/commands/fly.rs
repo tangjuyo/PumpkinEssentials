@@ -11,17 +11,17 @@ use pumpkin::{
     server::Server,
 };
 use pumpkin::command::CommandSender::Player;
-use pumpkin_util::GameMode;
 use pumpkin_util::text::TextComponent;
+use crate::{get_fly_state, set_fly_state};
 
-const NAMES: [&str; 1] = ["gmc"];
-const DESCRIPTION: &str = "Change your gamemode to creative.";
+const NAMES: [&str; 1] = ["fly"];
+const DESCRIPTION: &str = "Toggle flight mode for yourself or another player.";
 const ARG_TARGET: &str = "target";
 
-struct GMCExecutor;
+struct FlyExecutor;
 
 #[async_trait]
-impl CommandExecutor for GMCExecutor {
+impl CommandExecutor for FlyExecutor {
     async fn execute<'a>(
         &self,
         sender: &mut CommandSender,
@@ -39,43 +39,52 @@ impl CommandExecutor for GMCExecutor {
                 target.clone()
             };
 
-            // Vérifier si le joueur est déjà en Creative
-            if target_player.gamemode.load() == GameMode::Creative {
-                let player_name = &target_player.gameprofile.name;
-                if std::ptr::eq(target, &target_player) {
-                    target
-                        .send_system_message(&TextComponent::text(
-                            "You are already in Creative mode."
-                        ))
-                        .await;
-                } else {
-                    target
-                        .send_system_message(&TextComponent::text(format!(
-                            "{} is already in Creative mode.",
-                            player_name
-                        )))
-                        .await;
-                }
-                return Ok(());
-            }
+            // Get current fly state from HashMap
+            let player_uuid = target_player.gameprofile.id;
+            let is_fly_enabled = get_fly_state(player_uuid).await;
+            
+            // Toggle fly state
+            let new_fly_state = !is_fly_enabled;
+            set_fly_state(player_uuid, new_fly_state).await;
 
-            target_player.set_gamemode(GameMode::Creative).await;
+            // Apply the fly state to the player's abilities
+            {
+                let mut abilities = target_player.abilities.lock().await;
+                if new_fly_state {
+                    // Activer le vol : activer allow_flying et flying
+                    abilities.allow_flying = true;
+                    abilities.flying = true;
+                } else {
+                    // Désactiver le vol : désactiver flying et allow_flying
+                    abilities.flying = false;
+                    abilities.allow_flying = false;
+                }
+            }
+            target_player.send_abilities_update().await;
 
             let player_name = &target_player.gameprofile.name;
+            let status = if new_fly_state { "enabled" } else { "disabled" };
             
             if std::ptr::eq(target, &target_player) {
                 target
                     .send_system_message(&TextComponent::text(format!(
-                        "Set own gamemode to {:?}",
-                        GameMode::Creative
+                        "Flight mode {}",
+                        status
                     )))
                     .await;
             } else {
                 target
                     .send_system_message(&TextComponent::text(format!(
-                        "Set {}'s gamemode to {:?}",
-                        player_name,
-                        GameMode::Creative
+                        "{} flight mode for {}",
+                        if new_fly_state { "Enabled" } else { "Disabled" },
+                        player_name
+                    )))
+                    .await;
+                    
+                target_player
+                    .send_system_message(&TextComponent::text(format!(
+                        "Flight mode {}",
+                        status
                     )))
                     .await;
             }
@@ -91,7 +100,7 @@ impl CommandExecutor for GMCExecutor {
 pub fn init_command_tree() -> CommandTree {
     CommandTree::new(NAMES, DESCRIPTION).then(
         require(|sender| sender.is_player())
-            .execute(GMCExecutor)
-            .then(argument(ARG_TARGET, PlayersArgumentConsumer).execute(GMCExecutor))
+            .execute(FlyExecutor)
+            .then(argument(ARG_TARGET, PlayersArgumentConsumer).execute(FlyExecutor))
     )
 }

@@ -11,7 +11,6 @@ use pumpkin::{
     server::Server,
 };
 use pumpkin::command::CommandSender::Player;
-use pumpkin_util::math::vector3::Vector3;
 use pumpkin_util::text::TextComponent;
 // TODO: Fix WorldPosition import if needed
 // use pumpkin_util::math::position::WorldPosition;

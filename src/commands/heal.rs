@@ -11,17 +11,16 @@ use pumpkin::{
     server::Server,
 };
 use pumpkin::command::CommandSender::Player;
-use pumpkin_util::GameMode;
 use pumpkin_util::text::TextComponent;
 
-const NAMES: [&str; 1] = ["gmc"];
-const DESCRIPTION: &str = "Change your gamemode to creative.";
+const NAMES: [&str; 1] = ["heal"];
+const DESCRIPTION: &str = "Heal yourself or another player.";
 const ARG_TARGET: &str = "target";
 
-struct GMCExecutor;
+struct HealExecutor;
 
 #[async_trait]
-impl CommandExecutor for GMCExecutor {
+impl CommandExecutor for HealExecutor {
     async fn execute<'a>(
         &self,
         sender: &mut CommandSender,
@@ -39,44 +38,25 @@ impl CommandExecutor for GMCExecutor {
                 target.clone()
             };
 
-            // Vérifier si le joueur est déjà en Creative
-            if target_player.gamemode.load() == GameMode::Creative {
-                let player_name = &target_player.gameprofile.name;
-                if std::ptr::eq(target, &target_player) {
-                    target
-                        .send_system_message(&TextComponent::text(
-                            "You are already in Creative mode."
-                        ))
-                        .await;
-                } else {
-                    target
-                        .send_system_message(&TextComponent::text(format!(
-                            "{} is already in Creative mode.",
-                            player_name
-                        )))
-                        .await;
-                }
-                return Ok(());
-            }
-
-            target_player.set_gamemode(GameMode::Creative).await;
+            // Set player's health to maximum (20.0)
+            target_player.set_health(20.0).await;
 
             let player_name = &target_player.gameprofile.name;
             
             if std::ptr::eq(target, &target_player) {
                 target
-                    .send_system_message(&TextComponent::text(format!(
-                        "Set own gamemode to {:?}",
-                        GameMode::Creative
-                    )))
+                    .send_system_message(&TextComponent::text("You have been healed!"))
                     .await;
             } else {
                 target
                     .send_system_message(&TextComponent::text(format!(
-                        "Set {}'s gamemode to {:?}",
-                        player_name,
-                        GameMode::Creative
+                        "Healed {}",
+                        player_name
                     )))
+                    .await;
+                    
+                target_player
+                    .send_system_message(&TextComponent::text("You have been healed!"))
                     .await;
             }
 
@@ -91,7 +71,7 @@ impl CommandExecutor for GMCExecutor {
 pub fn init_command_tree() -> CommandTree {
     CommandTree::new(NAMES, DESCRIPTION).then(
         require(|sender| sender.is_player())
-            .execute(GMCExecutor)
-            .then(argument(ARG_TARGET, PlayersArgumentConsumer).execute(GMCExecutor))
+            .execute(HealExecutor)
+            .then(argument(ARG_TARGET, PlayersArgumentConsumer).execute(HealExecutor))
     )
 }

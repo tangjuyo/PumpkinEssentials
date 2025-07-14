@@ -39,6 +39,26 @@ impl CommandExecutor for GMAExecutor {
                 target.clone()
             };
 
+            // Vérifier si le joueur est déjà en Adventure
+            if target_player.gamemode.load() == GameMode::Adventure {
+                let player_name = &target_player.gameprofile.name;
+                if std::ptr::eq(target, &target_player) {
+                    target
+                        .send_system_message(&TextComponent::text(
+                            "You are already in Adventure mode."
+                        ))
+                        .await;
+                } else {
+                    target
+                        .send_system_message(&TextComponent::text(format!(
+                            "{} is already in Adventure mode.",
+                            player_name
+                        )))
+                        .await;
+                }
+                return Ok(());
+            }
+
             target_player.set_gamemode(GameMode::Adventure).await;
 
             let player_name = &target_player.gameprofile.name;

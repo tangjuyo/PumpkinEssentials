@@ -36,7 +36,7 @@ impl CommandExecutor for TpaExecutor {
     async fn execute<'a>(
         &self,
         sender: &mut CommandSender,
-        server: &Server,
+        _server: &Server,
         args: &ConsumedArgs<'a>,
     ) -> Result<(), CommandError> {
         if let Player(target) = sender {
