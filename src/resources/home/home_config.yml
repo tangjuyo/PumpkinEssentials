@@ -1,0 +1,140 @@
+# Home System Configuration
+# Configuration file for the home teleportation system
+
+# Home Settings
+home:
+  # Maximum number of homes per player
+  max_homes: 3
+  
+  # Cooldown between home teleports (in seconds)
+  cooldown: 5
+  
+  # Allow cross-world home teleportation
+  cross_world: true
+  
+  # Allow setting homes in protected areas
+  allow_protected_areas: false
+  
+  # Allow setting homes in PvP zones
+  allow_pvp_zones: false
+  
+  # Allow setting homes in the nether
+  allow_nether: true
+  
+  # Allow setting homes in the end
+  allow_end: true
+  
+  # Minimum distance from spawn to set a home
+  min_distance_from_spawn: 100
+  
+  # Maximum distance from spawn to set a home (0 = unlimited)
+  max_distance_from_spawn: 0
+  
+  # Allow setting homes while in combat
+  allow_in_combat: false
+  
+  # Allow teleporting to homes while in combat
+  allow_teleport_in_combat: false
+
+# Home Names
+home_names:
+  # Default home name
+  default: "home"
+  
+  # Allowed characters in home names (regex pattern)
+  allowed_chars: "^[a-zA-Z0-9_-]+$"
+  
+  # Maximum length of home names
+  max_length: 16
+  
+  # Minimum length of home names
+  min_length: 1
+  
+  # Reserved names that cannot be used
+  reserved:
+    - "spawn"
+    - "world"
+    - "admin"
+    - "mod"
+    - "staff"
+
+# Home Messages
+messages:
+  # Success messages
+  success:
+    home_set: "&aHome '{name}' set successfully!"
+    home_teleport: "&aWelcome to your home '{name}'!"
+    home_deleted: "&aHome '{name}' deleted successfully!"
+    home_list: "&aYour homes: {homes}"
+    
+  # Error messages
+  error:
+    home_limit: "&cYou have reached the maximum number of homes ({max_homes})."
+    home_not_found: "&cHome '{name}' not found!"
+    home_exists: "&cHome '{name}' already exists!"
+    home_cooldown: "&cPlease wait {cooldown} seconds before teleporting home again."
+    home_invalid_name: "&cInvalid home name. Use only letters, numbers, underscores, and hyphens."
+    home_name_too_long: "&cHome name is too long. Maximum {max_length} characters."
+    home_name_too_short: "&cHome name is too short. Minimum {min_length} characters."
+    home_reserved_name: "&c'{name}' is a reserved name and cannot be used."
+    home_protected_area: "&cYou cannot set a home in a protected area."
+    home_pvp_zone: "&cYou cannot set a home in a PvP zone."
+    home_nether_disabled: "&cYou cannot set a home in the nether."
+    home_end_disabled: "&cYou cannot set a home in the end."
+    home_too_close_spawn: "&cYou must be at least {distance} blocks from spawn to set a home."
+    home_too_far_spawn: "&cYou cannot set a home more than {distance} blocks from spawn."
+    home_in_combat: "&cYou cannot set a home while in combat."
+    home_teleport_in_combat: "&cYou cannot teleport home while in combat."
+    
+  # Info messages
+  info:
+    home_list_header: "&6=== Your Homes ==="
+    home_list_entry: "&e- {name}: {world} ({x}, {y}, {z})"
+    home_list_empty: "&eYou don't have any homes set."
+    home_count: "&eYou have {current}/{max} homes set."
+
+# Home Database
+database:
+  # Database type for homes (sqlite, mysql, postgresql)
+  type: "sqlite"
+  
+  # SQLite specific settings
+  sqlite:
+    # Path to the home database file
+    path: "data.sqlite"
+    
+  # Table name for homes
+  table_name: "homes"
+  
+  # Auto-backup settings
+  backup:
+    # Enable automatic backups
+    enabled: true
+    
+    # Backup interval (in hours)
+    interval: 24
+    
+    # Number of backups to keep
+    keep_count: 7
+    
+    # Backup directory
+    directory: "backups"
+
+# Home Permissions
+permissions:
+  # Basic home permissions
+  basic:
+    - "essentials.home"
+    - "essentials.home.set"
+    - "essentials.home.teleport"
+    - "essentials.home.delete"
+    - "essentials.home.list"
+    
+  # Admin home permissions
+  admin:
+    - "essentials.home.admin"
+    - "essentials.home.others"
+    - "essentials.home.unlimited"
+    - "essentials.home.bypass.cooldown"
+    - "essentials.home.bypass.limit"
+    - "essentials.home.bypass.restrictions" 

@@ -1,0 +1,139 @@
+# PumpkinEssentials Configuration
+# Main configuration file for the PumpkinEssentials plugin
+
+# Plugin Information
+plugin:
+  name: "PumpkinEssentials"
+  version: "1.0.0"
+  description: "Essential commands and features for Pumpkin servers"
+
+# General Settings
+general:
+  # Language for messages (en, fr, etc.)
+  language: "en"
+  
+  # Debug mode for development
+  debug: false
+  
+  # Prefix for all plugin messages
+  prefix: "&8[&aEssentials&8]&r "
+
+# Command Settings
+commands:
+  # Teleport commands
+  teleport:
+    # Cooldown between teleports (in seconds)
+    cooldown: 3
+    
+    # Maximum teleport distance
+    max_distance: 10000
+    
+    # Allow cross-world teleportation
+    cross_world: true
+    
+    # Teleport request timeout (in seconds)
+    request_timeout: 60
+    
+  # Home commands
+  home:
+    # Maximum number of homes per player
+    max_homes: 3
+    
+    # Cooldown between home teleports (in seconds)
+    cooldown: 5
+    
+    # Allow cross-world home teleportation
+    cross_world: true
+    
+  # Spawn commands
+  spawn:
+    # Cooldown between spawn teleports (in seconds)
+    cooldown: 10
+    
+    # Allow spawn teleportation
+    enabled: true
+    
+  # Warp commands
+  warp:
+    # Maximum number of warps
+    max_warps: 50
+    
+    # Cooldown between warp teleports (in seconds)
+    cooldown: 3
+    
+    # Allow cross-world warp teleportation
+    cross_world: true
+
+# Messages Configuration
+messages:
+  # Success messages
+  success:
+    teleport: "&aSuccessfully teleported!"
+    home_set: "&aHome set successfully!"
+    home_teleport: "&aWelcome home!"
+    spawn_teleport: "&aTeleported to spawn!"
+    warp_teleport: "&aTeleported to warp!"
+    
+  # Error messages
+  error:
+    teleport_cooldown: "&cPlease wait {cooldown} seconds before teleporting again."
+    home_limit: "&cYou have reached the maximum number of homes ({max_homes})."
+    home_not_found: "&cHome not found!"
+    spawn_disabled: "&cSpawn teleportation is disabled."
+    warp_not_found: "&cWarp not found!"
+    no_permission: "&cYou don't have permission to use this command."
+    
+  # Info messages
+  info:
+    teleport_request_sent: "&eTeleport request sent to {player}."
+    teleport_request_received: "&e{player} wants to teleport to you. Use /tpaccept or /tpdeny."
+    teleport_request_accepted: "&aTeleport request accepted!"
+    teleport_request_denied: "&cTeleport request denied."
+
+# Database Configuration
+database:
+  # Database type (sqlite, mysql, postgresql)
+  type: "sqlite"
+  
+  # SQLite specific settings
+  sqlite:
+    # Path to the database file (relative to plugin directory)
+    path: "home/data.sqlite"
+    
+  # MySQL specific settings (for future use)
+  mysql:
+    host: "localhost"
+    port: 3306
+    database: "pumpkin_essentials"
+    username: "root"
+    password: ""
+    
+  # PostgreSQL specific settings (for future use)
+  postgresql:
+    host: "localhost"
+    port: 5432
+    database: "pumpkin_essentials"
+    username: "postgres"
+    password: ""
+
+# Permissions
+permissions:
+  # Admin permissions
+  admin:
+    - "essentials.admin"
+    - "essentials.*"
+    
+  # Moderator permissions
+  moderator:
+    - "essentials.moderator"
+    - "essentials.teleport"
+    - "essentials.home"
+    - "essentials.spawn"
+    - "essentials.warp"
+    
+  # Player permissions
+  player:
+    - "essentials.teleport"
+    - "essentials.home"
+    - "essentials.spawn"
+    - "essentials.warp" 

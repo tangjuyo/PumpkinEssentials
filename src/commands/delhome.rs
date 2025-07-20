@@ -11,8 +11,10 @@ use pumpkin::{
     server::Server,
 };
 use pumpkin::command::CommandSender::Player;
+use pumpkin_util::text::TextComponent;
 
-use super::home_common::{PLAYER_HOMES, ARG_HOME_NAME};
+use super::home_common::ARG_HOME_NAME;
+use crate::home_manager::get_home_manager;
 
 const NAMES: [&str; 1] = ["delhome"];
 const DESCRIPTION: &str = "Delete one of your homes.";
@@ -35,28 +37,34 @@ impl CommandExecutor for DelhomeExecutor {
                 "home".to_string() // default home name
             };
 
-            let mut homes = PLAYER_HOMES.lock().await;
-            
-            if let Some(player_homes) = homes.get_mut(&target.gameprofile.id) {
-                if player_homes.remove(&home_name).is_some() {
-                    target
-                        .send_system_message(&TextComponent::text(format!(
-                            "Home '{}' has been deleted",
-                            home_name
-                        )))
-                        .await;
-                } else {
-                    target
-                        .send_system_message(&TextComponent::text(format!(
-                            "Home '{}' not found",
-                            home_name
-                        )))
-                        .await;
-                }
+            // Get home manager
+            let home_manager = get_home_manager().await
+                .map_err(|e| CommandError::CommandFailed(Box::new(TextComponent::text(format!("Failed to get home manager: {}", e)))))?;
+
+            // Get configuration
+            let config_manager = home_manager.get_config_manager();
+            let success_message = config_manager.get_success_message("home_deleted", "&aHome '{}' has been deleted").await;
+            let error_message = config_manager.get_error_message("home_not_found", "&cHome '{}' not found").await;
+            let no_homes_message = config_manager.get_error_message("no_homes", "&cYou have no homes set").await;
+
+            // Delete home from database
+            let deleted = home_manager.delete_home(target.gameprofile.id, &home_name).await
+                .map_err(|e| CommandError::CommandFailed(Box::new(TextComponent::text(format!("Failed to delete home: {}", e)))))?;
+
+            if deleted {
+                let formatted_message = success_message.replace("{}", &home_name);
+                target.send_system_message(&TextComponent::text(formatted_message)).await;
             } else {
-                target
-                    .send_system_message(&TextComponent::text("You have no homes set"))
-                    .await;
+                // Check if player has any homes at all
+                let home_count = home_manager.get_home_count(target.gameprofile.id).await
+                    .map_err(|e| CommandError::CommandFailed(Box::new(TextComponent::text(format!("Failed to get home count: {}", e)))))?;
+                
+                if home_count == 0 {
+                    target.send_system_message(&TextComponent::text(no_homes_message)).await;
+                } else {
+                    let formatted_message = error_message.replace("{}", &home_name);
+                    target.send_system_message(&TextComponent::text(formatted_message)).await;
+                }
             }
 
             Ok(())
@@ -72,4 +80,4 @@ pub fn init_command_tree() -> CommandTree {
         require(|sender| sender.is_player())
             .then(argument(ARG_HOME_NAME, SimpleArgConsumer).execute(DelhomeExecutor))
     )
-} use pumpkin_util::text::TextComponent;
+}

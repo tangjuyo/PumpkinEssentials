@@ -9,9 +9,9 @@ use pumpkin::command::{CommandExecutor, CommandSender};
 use pumpkin::command::CommandSender::Player;
 use pumpkin::server::Server;
 use pumpkin_util::text::TextComponent;
+use pumpkin_util::math::vector3::Vector3;
 
-// Import the global PLAYER_HOMES from home_common.rs
-use super::home_common::PLAYER_HOMES;
+use crate::home_manager::get_home_manager;
 
 const NAMES: [&str; 2] = ["renamehome", "rhome"];
 const DESCRIPTION: &str = "Rename an existing home.";
@@ -47,42 +47,90 @@ impl CommandExecutor for RenameHomeExecutor {
                 return Ok(());
             }
 
-            let mut homes = PLAYER_HOMES.lock().await;
-            if let Some(player_homes) = homes.get_mut(&target.gameprofile.id) {
-                // Check if old home exists
-                if let Some(home_data) = player_homes.remove(&old_name) {
-                    // Check if new name already exists
-                    if player_homes.contains_key(&new_name) {
-                        // Put the old home back
-                        player_homes.insert(old_name.clone(), home_data);
-                        target
-                            .send_system_message(&TextComponent::text(format!(
-                                "A home named '{}' already exists",
-                                new_name
-                            )))
-                            .await;
-                    } else {
-                        // Rename the home
-                        player_homes.insert(new_name.clone(), home_data);
-                        target
-                            .send_system_message(&TextComponent::text(format!(
-                                "Home '{}' renamed to '{}'",
-                                old_name, new_name
-                            )))
-                            .await;
-                    }
+            // Get home manager
+            let home_manager = get_home_manager().await
+                .map_err(|e| CommandError::CommandFailed(Box::new(TextComponent::text(format!("Failed to get home manager: {}", e)))))?;
+
+            // Get configuration
+            let config_manager = home_manager.get_config_manager();
+            let success_message = config_manager.get_success_message("home_renamed", "&aHome '{}' renamed to '{}'").await;
+            let error_message = config_manager.get_error_message("home_not_found", "&cHome '{}' not found").await;
+            let exists_message = config_manager.get_error_message("home_exists", "&cA home named '{}' already exists").await;
+            let no_homes_message = config_manager.get_error_message("no_homes", "&cYou have no homes set").await;
+
+            // Check if old home exists
+            let old_home_exists = home_manager.home_exists(target.gameprofile.id, &old_name).await
+                .map_err(|e| CommandError::CommandFailed(Box::new(TextComponent::text(format!("Failed to check old home: {}", e)))))?;
+
+            if !old_home_exists {
+                // Check if player has any homes at all
+                let home_count = home_manager.get_home_count(target.gameprofile.id).await
+                    .map_err(|e| CommandError::CommandFailed(Box::new(TextComponent::text(format!("Failed to get home count: {}", e)))))?;
+                
+                if home_count == 0 {
+                    target.send_system_message(&TextComponent::text(no_homes_message)).await;
                 } else {
-                    target
-                        .send_system_message(&TextComponent::text(format!(
-                            "Home '{}' not found",
-                            old_name
-                        )))
-                        .await;
+                    let formatted_message = error_message.replace("{}", &old_name);
+                    target.send_system_message(&TextComponent::text(formatted_message)).await;
                 }
+                return Ok(());
+            }
+
+            // Check if new name already exists
+            let new_home_exists = home_manager.home_exists(target.gameprofile.id, &new_name).await
+                .map_err(|e| CommandError::CommandFailed(Box::new(TextComponent::text(format!("Failed to check new home: {}", e)))))?;
+
+            if new_home_exists {
+                let formatted_message = exists_message.replace("{}", &new_name);
+                target.send_system_message(&TextComponent::text(formatted_message)).await;
+                return Ok(());
+            }
+
+            // Get the old home data
+            let old_home_info = home_manager.get_home(target.gameprofile.id, &old_name).await
+                .map_err(|e| CommandError::CommandFailed(Box::new(TextComponent::text(format!("Failed to get home info: {}", e)))))?;
+
+            if let Some((world_name, position, yaw, pitch)) = old_home_info {
+                // Delete the old home
+                let deleted = home_manager.delete_home(target.gameprofile.id, &old_name).await
+                    .map_err(|e| CommandError::CommandFailed(Box::new(TextComponent::text(format!("Failed to delete old home: {}", e)))))?;
+
+                if !deleted {
+                    let formatted_message = error_message.replace("{}", &old_name);
+                    target.send_system_message(&TextComponent::text(formatted_message)).await;
+                    return Ok(());
+                }
+
+                // Create the new home with the same data
+                let set_result = home_manager.set_home(
+                    target.gameprofile.id,
+                    new_name.clone(),
+                    world_name.clone(),
+                    position,
+                    yaw,
+                    pitch,
+                ).await;
+                
+                if let Err(e) = set_result {
+                    // Try to restore the old home if setting the new one failed
+                    let _ = home_manager.set_home(
+                        target.gameprofile.id,
+                        old_name.clone(),
+                        world_name.clone(),
+                        position,
+                        yaw,
+                        pitch,
+                    ).await;
+                    
+                    return Err(CommandError::CommandFailed(Box::new(TextComponent::text(format!("Failed to rename home: {}", e)))));
+                }
+
+                // Success message
+                let formatted_message = success_message.replace("{}", &old_name).replace("{}", &new_name);
+                target.send_system_message(&TextComponent::text(formatted_message)).await;
             } else {
-                target
-                    .send_system_message(&TextComponent::text("You have no homes set"))
-                    .await;
+                let formatted_message = error_message.replace("{}", &old_name);
+                target.send_system_message(&TextComponent::text(formatted_message)).await;
             }
 
             Ok(())

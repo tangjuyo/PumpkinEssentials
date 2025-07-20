@@ -2,6 +2,7 @@ pub mod home_common;
 pub mod home;
 pub mod sethome;
 pub mod delhome;
+pub mod homes;
 pub mod back;
 pub mod gmc;
 pub mod gms;

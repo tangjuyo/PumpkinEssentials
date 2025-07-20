@@ -1,0 +1,125 @@
+# Warp Configuration for PumpkinEssentials
+# This file demonstrates how easy it is to add new configuration files
+
+warp:
+  # Maximum number of warps a player can create
+  max_warps: 10
+  
+  # Cooldown between warp uses (in seconds)
+  cooldown: 5
+  
+  # Whether warps can be used across different worlds
+  cross_world: true
+  
+  # Whether warps can be used in protected areas
+  allow_protected_areas: false
+  
+  # Whether warps can be used in PvP zones
+  allow_pvp_zones: true
+  
+  # Whether warps can be used in the Nether
+  allow_nether: true
+  
+  # Whether warps can be used in the End
+  allow_end: true
+  
+  # Minimum distance from spawn to create a warp
+  min_distance_from_spawn: 100.0
+  
+  # Maximum distance from spawn to create a warp
+  max_distance_from_spawn: 10000.0
+  
+  # Whether warps can be used while in combat
+  allow_in_combat: false
+  
+  # Whether warps can be used while teleporting in combat
+  allow_teleport_in_combat: false
+
+warp_names:
+  # Default warp name
+  default: "warp"
+  
+  # Allowed characters in warp names
+  allowed_chars: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
+  
+  # Maximum length of warp names
+  max_length: 16
+  
+  # Minimum length of warp names
+  min_length: 1
+
+# Database configuration for warps
+database:
+  # Database type (sqlite, mysql, postgresql)
+  type: "sqlite"
+  
+  # SQLite specific configuration
+  sqlite:
+    # Path to the SQLite database file
+    path: "data/warps.sqlite"
+  
+  # Table name for storing warps
+  table_name: "warps"
+
+# Messages configuration
+messages:
+  # Success messages
+  success:
+    warp_created: "&aWarp '{name}' created successfully!"
+    warp_deleted: "&aWarp '{name}' deleted successfully!"
+    warp_teleported: "&aTeleporting to warp '{name}'..."
+  
+  # Error messages
+  error:
+    warp_not_found: "&cWarp '{name}' not found!"
+    warp_already_exists: "&cWarp '{name}' already exists!"
+    warp_limit_reached: "&cYou have reached the maximum number of warps ({max})!"
+    warp_cooldown: "&cPlease wait {time} seconds before using a warp again!"
+    warp_in_combat: "&cYou cannot use warps while in combat!"
+    warp_protected_area: "&cYou cannot use warps in protected areas!"
+    warp_pvp_zone: "&cYou cannot use warps in PvP zones!"
+    warp_nether: "&cYou cannot use warps in the Nether!"
+    warp_end: "&cYou cannot use warps in the End!"
+    warp_too_close: "&cYou are too close to spawn to create a warp!"
+    warp_too_far: "&cYou are too far from spawn to create a warp!"
+    warp_invalid_name: "&cInvalid warp name! Use only letters, numbers, underscores, and hyphens."
+    warp_name_too_short: "&cWarp name must be at least {min} characters long!"
+    warp_name_too_long: "&cWarp name must be no more than {max} characters long!"
+
+# Permissions configuration
+permissions:
+  # Permission to create warps
+  create: "essentials.warp.create"
+  
+  # Permission to delete warps
+  delete: "essentials.warp.delete"
+  
+  # Permission to use warps
+  use: "essentials.warp.use"
+  
+  # Permission to list warps
+  list: "essentials.warp.list"
+  
+  # Permission to use warps without cooldown
+  no_cooldown: "essentials.warp.nocooldown"
+  
+  # Permission to use warps in combat
+  combat: "essentials.warp.combat"
+  
+  # Permission to use warps in protected areas
+  protected: "essentials.warp.protected"
+  
+  # Permission to use warps in PvP zones
+  pvp: "essentials.warp.pvp"
+  
+  # Permission to use warps in the Nether
+  nether: "essentials.warp.nether"
+  
+  # Permission to use warps in the End
+  end: "essentials.warp.end"
+  
+  # Permission to create warps close to spawn
+  close_spawn: "essentials.warp.closespawn"
+  
+  # Permission to create warps far from spawn
+  far_spawn: "essentials.warp.farspawn" 
