@@ -9,13 +9,14 @@ A comprehensive collection of essential commands for Pumpkin Minecraft servers.
 - ⚠️ = command coded or partially coded but isn't working yet
 - ✅ = command available and working 
 - ❌ = command not done yet
+- ☑️ = command available with a specific fix that is not yet in pumpkin
 
 ### Home System
 
-- ⚠️ `/home [name]` - Teleport to your home
-- ⚠️ `/sethome [name]` - Set a home at your current location  
-- ⚠️ `/delhome <name>` - Delete a home
-- ⚠️ `/renamehome <old> <new>` - Rename a home
+- ☑️ `/home [name]` - Teleport to your home
+- ☑️ `/sethome [name]` - Set a home at your current location  
+- ☑️ `/delhome <name>` - Delete a home
+- ☑️ `/renamehome <old> <new>` - Rename a home
 
 ### Gamemode Shortcuts
 
@@ -27,12 +28,14 @@ A comprehensive collection of essential commands for Pumpkin Minecraft servers.
 ### Teleportation
 
 - ⚠️ `/back` - Return to your previous location before teleportation
-- ⚠️ `/top` - Teleport to the highest block at your position
-- ⚠️ `/tpa <player>` - Request to teleport to a player
-- ⚠️ `/tpaccept` - Accept a teleport request
-- ⚠️ `/tpdeny` - Deny a teleport request
-- ⚠️ `/tpahere <player>` - Request a player to teleport to you
-- ⚠️ `/tpall` - Teleport all players to you
+- ☑️ `/top` - Teleport to the highest block at your position
+- ☑️ `/tpa <player>` - Request to teleport to a player
+- ☑️ `/tpaccept` - Accept a teleport request
+- ☑️ `/tpdeny` - Deny a teleport request
+- ☑️ `/tpahere <player>` - Request a player to teleport to you
+- ☑️ `/tpall` - Teleport all players to you
+- ☑️ `/setspawn` - Set the spawn point
+- ☑️ `/spawn` - Teleport to the spawn point ( right now when you die its still teleport to the vanilla spawn)
 
 ### Utility Commands
 
@@ -45,17 +48,20 @@ A comprehensive collection of essential commands for Pumpkin Minecraft servers.
 - ✅ `/suicide` - Commit suicide
 - ❌ `/killall` - Kill all entities
 - ❌ `/enderchest [player]` - Open an enderchest
-- ❌ `/ignore <player>` - Ignore a player
+- ❌ `/ignore [player]` - Ignore a player
 - ❌ `/kickall` - Kick all players
-- ⚠️ `/sudo <player> <command>` - Execute a command as another player
+- ⚠️ `/sudo [player] <command>` - Execute a command as another player
 - ✅ `/speed <walk|fly> <value> [player]` - Set walk or fly speed
+- ✅ `/near` - Show near player
+- ✅ `/createkit <name>` - Create a new kit with what the player has in his inventory 
+- ✅ `/kit <name>` - Give the specified kit ( delay configurable | vanilla item | give command support )
+
 
 ## Next focus
 
-- Some commentary are still in french ( due to my first language being french ). I will take the time to convert them all to english.
-- finding and solving the teleportation issue to make every command that need teleporting available
-- starting a real yml files structure to make persistant data & configuration 
-- whenever the yml structure is done ==> starting on ignore command & on chat control with configuration for banning word
+- finding and solving the teleportation issue to make every command that need teleportation - ☑️
+- starting a real yml files structure to make persistant data & configuration ⚠️ ( work in progress )
+
 
 ## Installation
 

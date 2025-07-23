@@ -29,54 +29,48 @@ impl CommandExecutor for TopExecutor {
         _args: &ConsumedArgs<'a>,
     ) -> Result<(), CommandError> {
         if let Player(target) = sender {
-            // TODO: The logic for finding the top block needs to be fixed based on the Pumpkin API.
-            // The following code is commented out because it does not compile.
-
-            /*
+            // 1. Récupérer la position actuelle du joueur (en flottant)
             let current_pos = target.living_entity.entity.pos.load();
-            let world_name = &target.living_entity.entity.world.name;
-            let world = server.get_world_by_name(world_name).await.unwrap();
-            
-            let mut highest_y = 0.0;
-            
-            // Find the highest non-air block
-            for y in (0..=320).rev() {
-                let block_pos = Vector3::new(current_pos.x.floor() as i32, y, current_pos.z.floor() as i32);
-                let chunk_pos = WorldPosition::from_block_pos(block_pos);
-                
-                if let Some(chunk) = world.get_chunk(chunk_pos.chunk_x, chunk_pos.chunk_z).await {
-                    let block = chunk.get_block(chunk_pos.chunk_x, y, chunk_pos.chunk_z);
-                    if block.to_registry_id() != 0 { // Not air
-                        highest_y = (y + 1) as f64;
-                        break;
-                    }
+            let x = current_pos.x.floor() as i32;
+            let z = current_pos.z.floor() as i32;
+
+            // 2. Récupérer le monde du joueur
+            let world = target.living_entity.entity.world.read().await;
+
+            // 3. Définir les bornes Y (hauteur du monde)
+            // On prend des valeurs classiques, à adapter si besoin
+            let min_y = 0;
+            let max_y = 320;
+            let mut found_y = None;
+
+            // 4. On boucle du haut vers le bas pour trouver le premier bloc solide
+            for y in (min_y..=max_y).rev() {
+                let pos = pumpkin_util::math::position::BlockPos::new(x, y, z);
+                let block_state = world.get_block_state(&pos).await;
+                if !block_state.is_air() {
+                    found_y = Some(y);
+                    break;
                 }
             }
-            
-            if highest_y > 0.0 {
-                let new_pos = Vector3::new(current_pos.x, highest_y, current_pos.z);
+
+            if let Some(y) = found_y {
+                // 5. On téléporte le joueur juste au-dessus du bloc trouvé
+                let new_pos = pumpkin_util::math::vector3::Vector3::new(current_pos.x, (y + 1) as f64, current_pos.z);
                 let yaw = target.living_entity.entity.yaw.load();
                 let pitch = target.living_entity.entity.pitch.load();
-                
                 target.teleport(new_pos, yaw, pitch).await;
-                
                 target
                     .send_system_message(&TextComponent::text(format!(
-                        "Teleported to the top ({:.1})",
-                        highest_y
+                        "Teleported to the top (Y = {})",
+                        y + 1
                     )))
                     .await;
             } else {
+                // 6. Aucun bloc solide trouvé sous le joueur
                 target
-                    .send_system_message(&TextComponent::text("No solid block found below you"))
+                    .send_system_message(&TextComponent::text("No solid block found below you!"))
                     .await;
             }
-            */
-
-            target
-                .send_system_message(&TextComponent::text("This command is temporarily disabled."))
-                .await;
-            
             Ok(())
         } else {
             Err(InvalidRequirement)

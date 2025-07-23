@@ -105,6 +105,7 @@ pub struct BackLocationHandler;
 #[async_trait]
 impl EventHandler<PlayerTeleportEvent> for BackLocationHandler {
     async fn handle_blocking(&self, _server: &Arc<Server>, event: &mut PlayerTeleportEvent) {
+        log::info!("[Essentials] Handler BackLocationHandler appelé pour {}", event.player.gameprofile.name);
         // Save the 'from' position as the back location
         let mut back_locations = PLAYER_BACK_LOCATIONS.lock().await;
         
@@ -116,6 +117,9 @@ impl EventHandler<PlayerTeleportEvent> for BackLocationHandler {
         };
 
         back_locations.insert(event.player.gameprofile.id, back_location);
+
+        // DEBUG: Message temporaire pour vérifier l'enregistrement
+        let _ = event.player.send_system_message(&pumpkin_util::text::TextComponent::text("[DEBUG] Back location enregistrée !")).await;
     }
 }
 

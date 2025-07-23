@@ -3,21 +3,28 @@ use std::collections::HashMap;
 use once_cell::sync::Lazy;
 use pumpkin::{
     plugin::{
+        Context, EventPriority,
         player::player_teleport::PlayerTeleportEvent,
-        Context, EventPriority
     },
+    server::Server,
 };
 use pumpkin_api_macros::{plugin_impl, plugin_method};
 use pumpkin_util::{
     PermissionLvl,
     permission::{Permission, PermissionDefault},
 };
-use tokio::runtime::Runtime;
 use tokio::sync::Mutex;
 use tokio::time::{Duration, Instant};
 use uuid::Uuid;
+use pumpkin::PLUGIN_MANAGER;
+use pumpkin::plugin::api::events::player::player_join::PlayerJoinEvent;
 
 mod commands;
+mod config;
+mod database;
+mod home_manager;
+mod spawn_manager;
+mod kit_manager;
 
 const PLUGIN_NAME: &str = env!("CARGO_PKG_NAME");
 
@@ -44,6 +51,7 @@ async fn can_teleport(player_uuid: Uuid) -> bool {
     
     cooldowns.insert(player_uuid, now);
     true
+
 }
 
 // Helper function to get fly state for a player
@@ -65,6 +73,7 @@ async fn register_commands(context: &Context) -> Result<(), String> {
         ("sethome", "Set a home location"),
         ("delhome", "Delete a home location"),
         ("renamehome", "Rename a home location"),
+        ("homes", "List all your homes"),
         ("back", "Teleport to your previous location"),
         ("gmc", "Change to creative mode"),
         ("gms", "Change to survival mode"),
@@ -89,6 +98,11 @@ async fn register_commands(context: &Context) -> Result<(), String> {
         ("kickall", "Kick all players"),
         ("sudo", "Execute a command as another player"),
         ("speed", "Set walk or fly speed"),
+        ("spawn", "Teleport to the server spawn point"),
+        ("setspawn", "Set the server spawn point to your current location"),
+        ("near", "Show nearby players within a specified radius"),
+        ("createkit", "Create a kit from your current inventory"),
+        ("kit", "Use a kit or give it to another player"),
     ];
 
     for (cmd, description) in commands_list.iter() {
@@ -119,6 +133,11 @@ async fn register_commands(context: &Context) -> Result<(), String> {
     context.register_command(
         commands::renamehome::init_command_tree(),
         &format!("{PLUGIN_NAME}:command.renamehome")
+    ).await;
+    
+    context.register_command(
+        commands::homes::init_command_tree(),
+        &format!("{PLUGIN_NAME}:command.homes")
     ).await;
     
     context.register_command(
@@ -241,26 +260,111 @@ async fn register_commands(context: &Context) -> Result<(), String> {
         &format!("{PLUGIN_NAME}:command.speed")
     ).await;
 
+    context.register_command(
+        commands::spawn::init_command_tree(),
+        &format!("{PLUGIN_NAME}:command.spawn")
+    ).await;
+    
+    context.register_command(
+        commands::setspawn::init_command_tree(),
+        &format!("{PLUGIN_NAME}:command.setspawn")
+    ).await;
+    
+    context.register_command(
+        commands::near::init_command_tree(),
+        &format!("{PLUGIN_NAME}:command.near")
+    ).await;
+    
+    context.register_command(
+        commands::createkit::init_command_tree(),
+        &format!("{PLUGIN_NAME}:command.createkit")
+    ).await;
+    
+    context.register_command(
+        commands::kit::init_command_tree(),
+        &format!("{PLUGIN_NAME}:command.kit")
+    ).await;
+
     Ok(())
 }
 
 async fn register_events(context: &Context) {
-    // Register the back location event handler
-    context.register_event::<PlayerTeleportEvent, commands::back::BackLocationHandler>(
+    log::info!("[Essentials] Appel de register_events : enregistrement du handler BackLocationHandler");
+    PLUGIN_MANAGER.read().await.register::<PlayerTeleportEvent, commands::back::BackLocationHandler>(
         Arc::new(commands::back::BackLocationHandler),
         EventPriority::Normal,
-        false, // Non-blocking handler
+        false
+    ).await;
+
+    // TEST: Enregistrement d'un handler pour PlayerJoinEvent
+    PLUGIN_MANAGER.read().await.register::<PlayerJoinEvent, TestJoinHandler>(
+        Arc::new(TestJoinHandler),
+        EventPriority::Normal,
+        false
     ).await;
 }
 
-#[plugin_method]
+// Handler de test pour PlayerJoinEvent
+struct TestJoinHandler;
+
+#[async_trait::async_trait]
+impl pumpkin::plugin::EventHandler<PlayerJoinEvent> for TestJoinHandler {
+    async fn handle_blocking(&self, _server: &Arc<Server>, event: &mut PlayerJoinEvent) {
+        log::info!("[Essentials] Handler TestJoinHandler appelé pour {}", event.player.gameprofile.name);
+    }
+}#[plugin_method]
 async fn on_load(&mut self, context: &Context) -> Result<(), String> {
     pumpkin::init_log!();
+
+    // Test embedded resources
+    config::EssentialsConfigManager::test_embedded_resources();
+    
+    // Initialize configuration system
+    let data_folder = context.get_data_folder();
+    let config_manager = config::EssentialsConfigManager::new(data_folder.clone());
+    
+    if let Err(e) = config_manager.init().await {
+        log::error!("[Essentials] Failed to initialize configuration: {}", e);
+        return Err(format!("Configuration initialization failed: {}", e));
+    }
+    
+    // Test the new ConfigurationSection functionality
+    log::info!("[Essentials] Testing new ConfigurationSection features...");
+    
+    // Store the config manager in the context for later use
+    // TODO: Implement proper storage mechanism
+    
+    // Initialize home manager with database
+    let data_folder_clone = data_folder.clone();
+    if let Err(e) = home_manager::init_home_manager(data_folder_clone).await {
+        log::error!("[Essentials] Failed to initialize home manager: {}", e);
+        return Err(format!("Home manager initialization failed: {}", e));
+    }
+    
+    // Initialize spawn manager
+    if let Err(e) = spawn_manager::init_spawn_manager(data_folder.clone()).await {
+        log::error!("[Essentials] Failed to initialize spawn manager: {}", e);
+        return Err(format!("Spawn manager initialization failed: {}", e));
+    }
+    
+    // Initialize kit manager
+    match kit_manager::KitManager::new(data_folder.clone()).await {
+        Ok(kit_manager) => {
+            kit_manager::set_kit_manager(Arc::new(kit_manager)).await;
+            log::info!("[Essentials] Kit manager initialized successfully");
+        }
+        Err(e) => {
+            log::error!("[Essentials] Failed to initialize kit manager: {}", e);
+            return Err(format!("Kit manager initialization failed: {}", e));
+        }
+    }
+    
+    log::info!("[Essentials] Home manager initialized successfully");
 
     register_commands(context).await?;
     register_events(context).await;
 
-    log::info!("Extended Commands Plugin has been loaded.");
+    log::info!("PumpkinEssentials Plugin has been loaded successfully.");
     Ok(())
 }
 
@@ -279,5 +383,3 @@ impl Default for Plugin {
     }
 }
 
-pub static TOKIO_RUNTIME: Lazy<Runtime> =
-    Lazy::new(|| Runtime::new().expect("Failed to create global Tokio Runtime"));
