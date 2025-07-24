@@ -38,4 +38,4 @@ impl DataFile {
         fs::write(path, content)?;
         Ok(())
     }
-}
+} 

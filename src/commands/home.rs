@@ -14,7 +14,7 @@ use pumpkin::command::CommandSender::Player;
 use pumpkin_util::text::TextComponent;
 
 use super::home_common::ARG_HOME_NAME;
-use crate::home_manager::get_home_manager;
+use crate::managers::home_manager::get_home_manager;
 
 const NAMES: [&str; 1] = ["home"];
 const DESCRIPTION: &str = "Teleport to your home.";

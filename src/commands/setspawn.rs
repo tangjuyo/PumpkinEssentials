@@ -11,7 +11,7 @@ use pumpkin::{
 };
 use pumpkin::command::CommandSender::Player;
 use pumpkin_util::text::TextComponent;
-use crate::spawn_manager::{get_spawn_manager, SpawnLocation};
+use crate::managers::spawn_manager::{get_spawn_manager, SpawnLocation};
 
 const NAMES: [&str; 1] = ["setspawn"];
 const DESCRIPTION: &str = "Set the server spawn point to your current location.";

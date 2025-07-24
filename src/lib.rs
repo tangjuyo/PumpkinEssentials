@@ -21,10 +21,8 @@ use pumpkin::plugin::api::events::player::player_join::PlayerJoinEvent;
 
 mod commands;
 mod config;
-mod database;
-mod home_manager;
-mod spawn_manager;
-mod kit_manager;
+mod models;
+mod managers;
 
 const PLUGIN_NAME: &str = env!("CARGO_PKG_NAME");
 
@@ -336,21 +334,21 @@ async fn on_load(&mut self, context: &Context) -> Result<(), String> {
     
     // Initialize home manager with database
     let data_folder_clone = data_folder.clone();
-    if let Err(e) = home_manager::init_home_manager(data_folder_clone).await {
+    if let Err(e) = managers::home_manager::init_home_manager(data_folder_clone).await {
         log::error!("[Essentials] Failed to initialize home manager: {}", e);
         return Err(format!("Home manager initialization failed: {}", e));
     }
     
     // Initialize spawn manager
-    if let Err(e) = spawn_manager::init_spawn_manager(data_folder.clone()).await {
+    if let Err(e) = managers::spawn_manager::init_spawn_manager(data_folder.clone()).await {
         log::error!("[Essentials] Failed to initialize spawn manager: {}", e);
         return Err(format!("Spawn manager initialization failed: {}", e));
     }
     
     // Initialize kit manager
-    match kit_manager::KitManager::new(data_folder.clone()).await {
+    match managers::kit_manager::KitManager::new(data_folder.clone()).await {
         Ok(kit_manager) => {
-            kit_manager::set_kit_manager(Arc::new(kit_manager)).await;
+            managers::kit_manager::set_kit_manager(Arc::new(kit_manager)).await;
             log::info!("[Essentials] Kit manager initialized successfully");
         }
         Err(e) => {

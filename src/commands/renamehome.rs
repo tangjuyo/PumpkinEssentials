@@ -11,7 +11,7 @@ use pumpkin::server::Server;
 use pumpkin_util::text::TextComponent;
 use pumpkin_util::math::vector3::Vector3;
 
-use crate::home_manager::get_home_manager;
+use crate::managers::home_manager::get_home_manager;
 
 const NAMES: [&str; 2] = ["renamehome", "rhome"];
 const DESCRIPTION: &str = "Rename an existing home.";

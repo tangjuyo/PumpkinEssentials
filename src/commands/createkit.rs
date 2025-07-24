@@ -12,7 +12,7 @@ use pumpkin::{
 };
 use pumpkin::command::CommandSender::Player;
 use pumpkin_util::text::TextComponent;
-use crate::kit_manager::get_kit_manager;
+use crate::managers::kit_manager::get_kit_manager;
 
 const NAMES: [&str; 1] = ["createkit"];
 const DESCRIPTION: &str = "Create a kit from your current inventory.";

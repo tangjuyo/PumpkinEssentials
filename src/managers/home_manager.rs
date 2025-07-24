@@ -7,7 +7,7 @@ use pumpkin_util::math::vector3::Vector3;
 // Configuration trait not needed for current implementation
 
 use crate::config::EssentialsConfigManager;
-use crate::database::{DataFile, HomeLocation};
+use crate::models::{DataFile, HomeLocation};
 
 pub struct HomeManager {
     data_path: PathBuf,

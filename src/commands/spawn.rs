@@ -16,7 +16,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::time::{Duration, Instant};
 use uuid::Uuid;
-use crate::spawn_manager::get_spawn_manager;
+use crate::managers::spawn_manager::get_spawn_manager;
 
 const NAMES: [&str; 1] = ["spawn"];
 const DESCRIPTION: &str = "Teleport to the server spawn point.";

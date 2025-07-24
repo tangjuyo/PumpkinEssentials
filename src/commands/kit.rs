@@ -12,7 +12,7 @@ use pumpkin::{
 };
 use pumpkin::command::CommandSender::Player;
 use pumpkin_util::text::TextComponent;
-use crate::kit_manager::get_kit_manager;
+use crate::managers::kit_manager::get_kit_manager;
 
 const NAMES: [&str; 1] = ["kit"];
 const DESCRIPTION: &str = "Use a kit or give it to another player.";
@@ -74,7 +74,7 @@ impl CommandExecutor for KitExecutor {
                 &target_player.gameprofile.name,
                 server,
             ).await {
-                Ok(_) => {
+                Ok(true) => {
                     if std::ptr::eq(player, &target_player) {
                         player.send_system_message(&TextComponent::text(format!(
                             "You received kit '{}'!",
@@ -93,6 +93,13 @@ impl CommandExecutor for KitExecutor {
                             player.gameprofile.name
                         ))).await;
                     }
+                }
+                Ok(false) => {
+                    // Kit en cooldown
+                    player.send_system_message(&TextComponent::text(format!(
+                        "Kit '{}' is on cooldown. Please wait before using it again.",
+                        kit_name
+                    ))).await;
                 }
                 Err(e) => {
                     player.send_system_message(&TextComponent::text(format!(

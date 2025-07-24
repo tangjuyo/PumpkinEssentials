@@ -17,7 +17,7 @@ use pumpkin::{
 use pumpkin::command::CommandSender::Player;
 use pumpkin_util::text::TextComponent;
 
-use crate::home_manager::get_home_manager;
+use crate::managers::home_manager::get_home_manager;
 
 const NAMES: [&str; 1] = ["homes"];
 const DESCRIPTION: &str = "List all your homes";
