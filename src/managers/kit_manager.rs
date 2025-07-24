@@ -157,17 +157,13 @@ impl KitManager {
             } else {
                 // C'est un item vanilla
                 let parts: Vec<&str> = item_string.split_whitespace().collect();
-                log::info!("Processing kit item: '{}', parts: {:?}", item_string, parts);
                 
                 if parts.len() >= 2 {
                     let item_id = parts[0];
                     let quantity = parts[1].parse::<i32>().unwrap_or(1);
                     
-                    log::info!("Looking for item: '{}' with quantity: {}", item_id, quantity);
-                    
                     // Créer l'item
                     if let Some(item) = pumpkin_data::item::Item::from_registry_key(item_id) {
-                        log::info!("Found item: {}", item_id);
                         let mut stack = ItemStack::new(quantity as u8, item);
                         
                         // Ajouter les propriétés si spécifiées
@@ -184,7 +180,6 @@ impl KitManager {
                                 drop(slot_guard);
                                 player_inventory.set_stack(slot, stack).await;
                                 added = true;
-                                log::info!("Added item {} to slot {}", item_id, slot);
                                 break;
                             }
                         }
@@ -269,6 +264,28 @@ impl KitManager {
         data.save(&self.data_path)?;
         
         Ok(())
+    }
+
+    pub async fn reset_kit_cooldown(&self, kit_name: &str, player_uuid: Uuid) -> Result<bool> {
+        let mut data = self.data.lock().await;
+        let player_uuid_str = player_uuid.to_string();
+        
+        // Vérifier si le kit existe
+        if !data.kits.contains_key(kit_name) {
+            return Err(anyhow::anyhow!("Kit '{}' does not exist", kit_name));
+        }
+        
+        // Vérifier si le joueur a un cooldown pour ce kit
+        if let Some(player_cooldowns) = data.player_cooldowns.get_mut(&player_uuid_str) {
+            if player_cooldowns.remove(kit_name).is_some() {
+                data.save(&self.data_path)?;
+                Ok(true) // Cooldown reset
+            } else {
+                Ok(false) // Pas de cooldown trouvé
+            }
+        } else {
+            Ok(false) // Pas de cooldown trouvé
+        }
     }
 }
 

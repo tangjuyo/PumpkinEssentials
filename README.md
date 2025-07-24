@@ -55,7 +55,7 @@ A comprehensive collection of essential commands for Pumpkin Minecraft servers.
 - ✅ `/near` - Show near player
 - ✅ `/createkit <name>` - Create a new kit with what the player has in his inventory 
 - ✅ `/kit <name>` - Give the specified kit ( delay configurable | vanilla item | give command support )
-
+- ✅ `/resetkit <name> <player>` - Reset the delay of a kit for the selected kit & player
 
 ## Next focus
 

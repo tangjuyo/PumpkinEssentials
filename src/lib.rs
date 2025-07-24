@@ -101,6 +101,7 @@ async fn register_commands(context: &Context) -> Result<(), String> {
         ("near", "Show nearby players within a specified radius"),
         ("createkit", "Create a kit from your current inventory"),
         ("kit", "Use a kit or give it to another player"),
+        ("resetkit", "Reset the cooldown of a kit for a player"),
     ];
 
     for (cmd, description) in commands_list.iter() {
@@ -281,6 +282,11 @@ async fn register_commands(context: &Context) -> Result<(), String> {
     context.register_command(
         commands::kit::init_command_tree(),
         &format!("{PLUGIN_NAME}:command.kit")
+    ).await;
+    
+    context.register_command(
+        commands::resetkit::init_command_tree(),
+        &format!("{PLUGIN_NAME}:command.resetkit")
     ).await;
 
     Ok(())
