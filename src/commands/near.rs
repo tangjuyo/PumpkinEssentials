@@ -25,7 +25,7 @@ impl CommandExecutor for NearExecutor {
     async fn execute<'a>(
         &self,
         sender: &mut CommandSender,
-        server: &Server,
+        _server: &Server,
         args: &ConsumedArgs<'a>,
     ) -> Result<(), CommandError> {
         if let Player(player) = sender {
@@ -60,7 +60,7 @@ impl CommandExecutor for NearExecutor {
             };
 
             // Get the world and find nearby players
-            let world = target_player.living_entity.entity.world.read().await;
+            let world = target_player.living_entity.entity.world.clone();
             let target_pos = target_player.living_entity.entity.pos.load();
             let nearby_players = world.get_nearby_players(target_pos, radius).await;
 

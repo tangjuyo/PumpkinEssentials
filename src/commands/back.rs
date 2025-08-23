@@ -13,6 +13,7 @@ use pumpkin::{
         EventHandler,
     },
     server::Server,
+    entity::EntityBase,
 };
 use pumpkin::command::CommandSender::Player;
 use pumpkin_util::math::vector3::Vector3;
@@ -69,10 +70,12 @@ impl CommandExecutor for BackExecutor {
                     if back_location.position.x.is_finite() && back_location.position.y.is_finite() && back_location.position.z.is_finite() 
                         && back_location.yaw.is_finite() && back_location.pitch.is_finite() {
                         // Utiliser teleport comme la commande native Pumpkin
-                        target.teleport(
+                        let world = target.living_entity.entity.world.clone();
+                        target.clone().teleport(
                             back_location.position,
-                            back_location.yaw,
-                            back_location.pitch,
+                            Some(back_location.yaw),
+                            Some(back_location.pitch),
+                            world,
                         ).await;
 
                         target

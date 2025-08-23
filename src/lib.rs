@@ -5,6 +5,7 @@ use pumpkin::{
     plugin::{
         Context, EventPriority,
         player::player_teleport::PlayerTeleportEvent,
+        player::player_command_send::PlayerCommandSendEvent,
     },
     server::Server,
 };
@@ -23,6 +24,7 @@ mod commands;
 mod config;
 mod models;
 mod managers;
+mod handlers;
 
 const PLUGIN_NAME: &str = env!("CARGO_PKG_NAME");
 
@@ -102,6 +104,7 @@ async fn register_commands(context: &Context) -> Result<(), String> {
         ("createkit", "Create a kit from your current inventory"),
         ("kit", "Use a kit or give it to another player"),
         ("resetkit", "Reset the cooldown of a kit for a player"),
+        ("reply", "Reply to the last private message you received"),
     ];
 
     for (cmd, description) in commands_list.iter() {
@@ -288,21 +291,33 @@ async fn register_commands(context: &Context) -> Result<(), String> {
         commands::resetkit::init_command_tree(),
         &format!("{PLUGIN_NAME}:command.resetkit")
     ).await;
+    
+    context.register_command(
+        commands::reply::init_command_tree(),
+        &format!("{PLUGIN_NAME}:command.reply")
+    ).await;
 
     Ok(())
 }
 
-async fn register_events(context: &Context) {
+async fn register_events(_context: &Context) {
     log::info!("[Essentials] Appel de register_events : enregistrement du handler BackLocationHandler");
-    PLUGIN_MANAGER.read().await.register::<PlayerTeleportEvent, commands::back::BackLocationHandler>(
+    PLUGIN_MANAGER.register::<PlayerTeleportEvent, commands::back::BackLocationHandler>(
         Arc::new(commands::back::BackLocationHandler),
         EventPriority::Normal,
         false
     ).await;
 
     // TEST: Enregistrement d'un handler pour PlayerJoinEvent
-    PLUGIN_MANAGER.read().await.register::<PlayerJoinEvent, TestJoinHandler>(
+    PLUGIN_MANAGER.register::<PlayerJoinEvent, TestJoinHandler>(
         Arc::new(TestJoinHandler),
+        EventPriority::Normal,
+        false
+    ).await;
+    
+    // Enregistrement du handler pour les commandes de messages privés
+    PLUGIN_MANAGER.register::<PlayerCommandSendEvent, handlers::command_handler::CommandHandler>(
+        Arc::new(handlers::command_handler::CommandHandler),
         EventPriority::Normal,
         false
     ).await;
@@ -316,15 +331,17 @@ impl pumpkin::plugin::EventHandler<PlayerJoinEvent> for TestJoinHandler {
     async fn handle_blocking(&self, _server: &Arc<Server>, event: &mut PlayerJoinEvent) {
         log::info!("[Essentials] Handler TestJoinHandler appelé pour {}", event.player.gameprofile.name);
     }
-}#[plugin_method]
-async fn on_load(&mut self, context: &Context) -> Result<(), String> {
+}
+
+#[plugin_method]
+async fn on_load(&mut self, context: Arc<Context>) -> Result<(), String> {
     pumpkin::init_log!();
 
     // Test embedded resources
     config::EssentialsConfigManager::test_embedded_resources();
     
     // Initialize configuration system
-    let data_folder = context.get_data_folder();
+    let data_folder = context.get_data_folder().clone();
     let config_manager = config::EssentialsConfigManager::new(data_folder.clone());
     
     if let Err(e) = config_manager.init().await {
@@ -363,10 +380,16 @@ async fn on_load(&mut self, context: &Context) -> Result<(), String> {
         }
     }
     
+    // Initialize PM manager
+    if let Err(e) = managers::pm_manager::init_pm_manager(data_folder.clone()).await {
+        log::error!("[Essentials] Failed to initialize PM manager: {}", e);
+        return Err(format!("PM manager initialization failed: {}", e));
+    }
+    
     log::info!("[Essentials] Home manager initialized successfully");
 
-    register_commands(context).await?;
-    register_events(context).await;
+    register_commands(&context).await?;
+    register_events(&context).await;
 
     log::info!("PumpkinEssentials Plugin has been loaded successfully.");
     Ok(())

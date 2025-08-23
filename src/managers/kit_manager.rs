@@ -164,7 +164,7 @@ impl KitManager {
                     
                     // Créer l'item
                     if let Some(item) = pumpkin_data::item::Item::from_registry_key(item_id) {
-                        let mut stack = ItemStack::new(quantity as u8, item);
+                        let stack = ItemStack::new(quantity as u8, item);
                         
                         // Ajouter les propriétés si spécifiées
                         if parts.len() > 2 {

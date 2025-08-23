@@ -9,8 +9,10 @@ use pumpkin::{
         CommandExecutor, CommandSender,
     },
     server::Server,
+    entity::EntityBase,
 };
 use pumpkin::command::CommandSender::Player;
+use pumpkin_util::text::TextComponent;
 
 const NAMES: [&str; 1] = ["tpall"];
 const DESCRIPTION: &str = "Teleport all players to you.";
@@ -36,7 +38,8 @@ impl CommandExecutor for TpallExecutor {
             for player in players {
                 if player.gameprofile.id != target.gameprofile.id {
                     // The teleport will automatically trigger the event handler for back location
-                    player.teleport(target_pos, target_yaw, target_pitch).await;
+                    let world = player.living_entity.entity.world.clone();
+                    player.clone().teleport(target_pos, Some(target_yaw), Some(target_pitch), world).await;
                     teleported_count += 1;
                 }
             }
@@ -60,4 +63,4 @@ pub fn init_command_tree() -> CommandTree {
     CommandTree::new(NAMES, DESCRIPTION).then(
         require(|sender| sender.is_player()).execute(TpallExecutor)
     )
-} use pumpkin_util::text::TextComponent;
+}

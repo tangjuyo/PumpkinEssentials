@@ -23,14 +23,14 @@ impl CommandExecutor for SetSpawnExecutor {
     async fn execute<'a>(
         &self,
         sender: &mut CommandSender,
-        server: &Server,
+        _server: &Server,
         _args: &pumpkin::command::args::ConsumedArgs<'a>,
     ) -> Result<(), CommandError> {
         if let Player(target) = sender {
             let pos = target.living_entity.entity.pos.load();
             let yaw = target.living_entity.entity.yaw.load();
             let pitch = target.living_entity.entity.pitch.load();
-            let world = target.living_entity.entity.world.read().await.clone();
+            let world = target.living_entity.entity.world.clone();
             let world_name = world.level_info.read().await.level_name.clone();
             // Met à jour le LevelData (pour compatibilité vanilla)
             let mut info = world.level_info.write().await;

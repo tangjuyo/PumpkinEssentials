@@ -9,6 +9,7 @@ use pumpkin::{
         CommandExecutor, CommandSender,
     },
     server::Server,
+    entity::EntityBase,
 };
 use pumpkin::command::CommandSender::Player;
 use pumpkin_util::text::TextComponent;
@@ -79,7 +80,8 @@ impl CommandExecutor for HomeExecutor {
                     && yaw.is_finite() && pitch.is_finite() {
                     
                     // Utiliser teleport comme la commande native Pumpkin
-                    target.teleport(position, yaw, pitch).await;
+                    let world = target.living_entity.entity.world.clone();
+                    target.clone().teleport(position, Some(yaw), Some(pitch), world).await;
 
                     // Use configured success message
                     let formatted_message = success_message.replace("{home_name}", &home_name);

@@ -9,6 +9,7 @@ use pumpkin::{
         CommandExecutor, CommandSender,
     },
     server::Server,
+    entity::EntityBase,
 };
 use pumpkin::command::CommandSender::Player;
 use pumpkin_util::text::TextComponent;
@@ -35,7 +36,7 @@ impl CommandExecutor for TopExecutor {
             let z = current_pos.z.floor() as i32;
 
             // 2. Récupérer le monde du joueur
-            let world = target.living_entity.entity.world.read().await;
+            let world = target.living_entity.entity.world.clone();
 
             // 3. Définir les bornes Y (hauteur du monde)
             // On prend des valeurs classiques, à adapter si besoin
@@ -58,7 +59,8 @@ impl CommandExecutor for TopExecutor {
                 let new_pos = pumpkin_util::math::vector3::Vector3::new(current_pos.x, (y + 1) as f64, current_pos.z);
                 let yaw = target.living_entity.entity.yaw.load();
                 let pitch = target.living_entity.entity.pitch.load();
-                target.teleport(new_pos, yaw, pitch).await;
+                let world = target.living_entity.entity.world.clone();
+                target.clone().teleport(new_pos, Some(yaw), Some(pitch), world).await;
                 target
                     .send_system_message(&TextComponent::text(format!(
                         "Teleported to the top (Y = {})",

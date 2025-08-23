@@ -27,7 +27,7 @@ impl CommandExecutor for ResetKitExecutor {
     async fn execute<'a>(
         &self,
         sender: &mut CommandSender,
-        server: &Server,
+        _server: &Server,
         args: &ConsumedArgs<'a>,
     ) -> Result<(), CommandError> {
         if let Player(player) = sender {

@@ -8,6 +8,7 @@ use pumpkin::{
         CommandExecutor, CommandSender,
     },
     server::Server,
+    entity::EntityBase,
 };
 use pumpkin::command::CommandSender::Player;
 use pumpkin_util::text::TextComponent;
@@ -32,7 +33,7 @@ impl CommandExecutor for SpawnExecutor {
     async fn execute<'a>(
         &self,
         sender: &mut CommandSender,
-        server: &Server,
+        _server: &Server,
         _args: &pumpkin::command::args::ConsumedArgs<'a>,
     ) -> Result<(), CommandError> {
         if let Player(target) = sender {
@@ -59,7 +60,8 @@ impl CommandExecutor for SpawnExecutor {
             let spawn_manager = get_spawn_manager().await.expect("Spawn manager not initialized");
             if let Some(spawn) = spawn_manager.get_spawn().await {
                 let pos = pumpkin_util::math::vector3::Vector3::new(spawn.x, spawn.y, spawn.z);
-                target.teleport(pos, spawn.yaw, spawn.pitch).await;
+                let world = target.living_entity.entity.world.clone();
+                target.clone().teleport(pos, Some(spawn.yaw), Some(spawn.pitch), world).await;
                 target
                     .send_system_message(&TextComponent::text("Teleported to spawn!"))
                     .await;
@@ -67,7 +69,7 @@ impl CommandExecutor for SpawnExecutor {
             }
 
             // Fallback : spawn vanilla
-            let world = target.living_entity.entity.world.read().await.clone();
+            let world = target.living_entity.entity.world.clone();
             let info = world.level_info.read().await;
             let spawn_x = info.spawn_x;
             let spawn_y = info.spawn_y;
@@ -75,7 +77,8 @@ impl CommandExecutor for SpawnExecutor {
             let spawn_yaw = info.spawn_angle;
             let spawn_pitch = 0.0;
             let spawn_pos = pumpkin_util::math::vector3::Vector3::new(spawn_x as f64, spawn_y as f64, spawn_z as f64);
-            target.teleport(spawn_pos, spawn_yaw, spawn_pitch).await;
+            let world = target.living_entity.entity.world.clone();
+            target.clone().teleport(spawn_pos, Some(spawn_yaw), Some(spawn_pitch), world).await;
             target
                 .send_system_message(&TextComponent::text("Teleported to spawn! (default)"))
                 .await;

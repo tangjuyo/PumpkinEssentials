@@ -9,6 +9,7 @@ use pumpkin::{
         CommandExecutor, CommandSender,
     },
     server::Server,
+    entity::EntityBase,
 };
 use pumpkin::command::CommandSender::Player;
 use pumpkin_util::text::TextComponent;
@@ -128,7 +129,8 @@ impl CommandExecutor for TpacceptExecutor {
                             if target_pos.x.is_finite() && target_pos.y.is_finite() && target_pos.z.is_finite() 
                                 && target_yaw.is_finite() && target_pitch.is_finite() {
                                 log::info!("[TPA] Teleporting {} to pos={:?}, yaw={}, pitch={}", requester.gameprofile.name, target_pos, target_yaw, target_pitch);
-                                requester.teleport(target_pos, target_yaw, target_pitch).await;
+                                let world = requester.living_entity.entity.world.clone();
+                                requester.clone().teleport(target_pos, Some(target_yaw), Some(target_pitch), world).await;
                                 
                                 requester
                                     .send_system_message(&TextComponent::text(format!(
@@ -165,7 +167,8 @@ impl CommandExecutor for TpacceptExecutor {
                             if requester_pos.x.is_finite() && requester_pos.y.is_finite() && requester_pos.z.is_finite() 
                                 && requester_yaw.is_finite() && requester_pitch.is_finite() {
                                 log::info!("[TPAHERE] Teleporting {} to pos={:?}, yaw={}, pitch={}", target.gameprofile.name, requester_pos, requester_yaw, requester_pitch);
-                                target.teleport(requester_pos, requester_yaw, requester_pitch).await;
+                                let world = target.living_entity.entity.world.clone();
+                                target.clone().teleport(requester_pos, Some(requester_yaw), Some(requester_pitch), world).await;
                                 
                                 target
                                     .send_system_message(&TextComponent::text(format!(

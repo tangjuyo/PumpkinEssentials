@@ -10,11 +10,11 @@ lto = true
 crate-type = ["cdylib"]
 
 [dependencies]
-pumpkin = { path = "../../PumpkinCE/pumpkin" }
-pumpkin-util = { path = "../../PumpkinCE/pumpkin-util" }
-pumpkin-api-macros = { path = "../../PumpkinCE/pumpkin-api-macros" }
-pumpkin-world = { path = "../../PumpkinCE/pumpkin-world" }
-pumpkin-data = { path = "../../PumpkinCE/pumpkin-data" }
+pumpkin = { git = "https://github.com/Pumpkin-MC/Pumpkin.git", branch = "master", package = "pumpkin" }
+pumpkin-util = { git = "https://github.com/Pumpkin-MC/Pumpkin.git", branch = "master", package = "pumpkin-util" }
+pumpkin-api-macros = { git = "https://github.com/Pumpkin-MC/Pumpkin.git", branch = "master", package = "pumpkin-api-macros" }
+pumpkin-world = { git = "https://github.com/Pumpkin-MC/Pumpkin.git", branch = "master", package = "pumpkin-world" }
+pumpkin-data = { git = "https://github.com/Pumpkin-MC/Pumpkin.git", branch = "master", package = "pumpkin-data" }
 pumpkin-plugin-config = { path = "../../pumpkin-plugin-config" }
 
 async-trait = "0.1"
@@ -30,3 +30,7 @@ once_cell = "1.21.1"
 lazy_static = "1.5.0"
 chrono = { version = "0.4", features = ["serde"] }
 sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "chrono"] }
+
+
+[patch.crates-io]
+rsa = { git = "https://github.com/RustCrypto/RSA.git", branch = "master" }
